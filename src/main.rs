@@ -1,10 +1,50 @@
-use std::fmt;
+use std::{fmt, mem};
 
 const MAXIMUM_STACK_SIZE: usize = 1024;
 
 #[derive(Debug)]
 struct Stack {
     items: Vec<i32>,
+}
+
+struct SimpleMemory {
+    memory: Vec<i32>,
+}
+
+impl SimpleMemory {
+    fn new() -> Self {
+        Self { memory: vec![] }
+    }
+
+    fn access(&self, offset: usize, size: usize) -> Vec<i32> {
+        self.memory[offset..(offset + size)].to_vec()
+    }
+
+    fn load(&self, offset: usize) -> Vec<i32> {
+        self.memory[offset..32].to_vec()
+    }
+
+    fn store(&mut self, offset: usize, values: Vec<i32>) {
+        let mut memory_expansion_cost: i32;
+
+        if self.memory.len() <= offset + values.len() {
+            let mut expansion_size: usize;
+
+            // initialize memory with 32 zeros if it is empty
+            if self.memory.len() == 0 {
+                expansion_size = 32;
+                self.memory = vec![0x00; 32];
+            }
+
+            // extend more memory if needed
+            if self.memory.len() < offset + values.len() {
+                expansion_size = offset + values.len() - self.memory.len();
+                self.memory.resize(expansion_size, 0x00);
+            }
+        }
+
+        self.memory[offset..offset + values.len()].copy_from_slice(&values);
+    }
 }
 
 impl Stack {
@@ -48,11 +88,7 @@ impl fmt::Display for Stack {
 }
 
 fn main() {
-    let mut stack = Stack::new();
-    stack.push(1);
-    stack.push(2);
-    stack.push(3);
-    println!("{}", stack);
-    stack.pop();
-    println!("{}", stack);
+    let mut memory = SimpleMemory::new();
+    memory.store(0, vec![0x01, 0x02, 0x03, 0x04]);
+    println!("{:?}", memory.load(0));
 }
