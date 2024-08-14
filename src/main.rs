@@ -25,10 +25,10 @@ impl SimpleMemory {
     }
 
     fn store(&mut self, offset: usize, values: Vec<i32>) {
-        let mut memory_expansion_cost: i32;
+        let mut memory_expansion_cost: usize;
 
         if self.memory.len() <= offset + values.len() {
-            let mut expansion_size: usize;
+            let mut expansion_size: usize = 0;
 
             // initialize memory with 32 zeros if it is empty
             if self.memory.len() == 0 {
@@ -41,6 +41,7 @@ impl SimpleMemory {
                 expansion_size = offset + values.len() - self.memory.len();
                 self.memory.resize(expansion_size, 0x00);
             }
+            memory_expansion_cost = expansion_size ^ 2;
         }
 
         self.memory[offset..offset + values.len()].copy_from_slice(&values);
