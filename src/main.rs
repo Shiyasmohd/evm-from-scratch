@@ -47,11 +47,11 @@ impl fmt::Display for Stack {
     }
 }
 
-struct SimpleMemory {
+struct Memory {
     memory: Vec<u8>,
 }
 
-impl SimpleMemory {
+impl Memory {
     fn new() -> Self {
         Self { memory: vec![] }
     }
@@ -139,6 +139,22 @@ impl Storage {
     fn store(&mut self, key: u8, value: u8) {
         &self.storage.store(key, value);
     }
+}
+
+struct State {
+    pc: i32,
+    stack: Stack,
+    memory: Memory,
+    storage: Storage,
+    sender: String,
+    program: String,
+    gas: i32,
+    value: i32,
+    calldata: i32,
+    stop_flag: bool,
+    revert_flag: bool,
+    return_data: Vec<i32>,
+    logs: Vec<String>,
 }
 
 fn main() {
