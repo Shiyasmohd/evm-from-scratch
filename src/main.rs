@@ -348,4 +348,49 @@ fn signextend(evm: &mut EvmState) -> &mut EvmState {
     evm
 }
 
+fn lt(evm: &mut EvmState) -> &mut EvmState {
+    if let (Ok(a), Ok(b)) = (evm.stack.pop(), evm.stack.pop()) {
+        let result = if a < b { 1 } else { 0 };
+        evm.stack.push(result);
+        evm.pc += 1;
+        evm.gas_dec(3);
+    } else {
+        println!("Stack Underflow");
+    }
+    evm
+}
+fn gt(evm: &mut EvmState) -> &mut EvmState {
+    if let (Ok(a), Ok(b)) = (evm.stack.pop(), evm.stack.pop()) {
+        let result = if a > b { 1 } else { 0 };
+        evm.stack.push(result);
+        evm.pc += 1;
+        evm.gas_dec(3);
+    } else {
+        println!("Stack Underflow");
+    }
+    evm
+}
+fn eq(evm: &mut EvmState) -> &mut EvmState {
+    if let (Ok(a), Ok(b)) = (evm.stack.pop(), evm.stack.pop()) {
+        let result = if a == b { 1 } else { 0 };
+        evm.stack.push(result);
+        evm.pc += 1;
+        evm.gas_dec(3);
+    } else {
+        println!("Stack Underflow");
+    }
+    evm
+}
+fn is_zero(evm: &mut EvmState) -> &mut EvmState {
+    if let Ok(a) = evm.stack.pop() {
+        let result = if a == 0 { 1 } else { 0 };
+        evm.stack.push(result);
+        evm.pc += 1;
+        evm.gas_dec(3);
+    } else {
+        println!("Stack Underflow");
+    }
+    evm
+}
+
 fn main() {}
