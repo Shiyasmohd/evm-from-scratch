@@ -81,7 +81,7 @@ impl Memory {
                 expansion_size = offset + values.len() - self.memory.len();
                 self.memory.resize(expansion_size, 0x00);
             }
-            memory_expansion_cost = expansion_size ^ 2;
+            memory_expansion_cost = expansion_size.pow(2);
         }
 
         self.memory[offset..offset + values.len()].copy_from_slice(&values);
@@ -313,7 +313,7 @@ fn size_in_bytes(num: i128) -> i128 {
 fn exp(evm: &mut EvmState) -> &mut EvmState {
     match (evm.stack.pop(), evm.stack.pop()) {
         (Ok(a), Ok(b)) => {
-            evm.stack.push(a ^ b);
+            evm.stack.push(a.pow(b.try_into().unwrap()));
             evm.pc += 1;
             evm.gas_dec(10 + (50 * size_in_bytes(b)));
         }
@@ -347,7 +347,7 @@ fn signextend(evm: &mut EvmState) -> &mut EvmState {
     };
     evm
 }
-
+// Comparisons
 fn lt(evm: &mut EvmState) -> &mut EvmState {
     if let (Ok(a), Ok(b)) = (evm.stack.pop(), evm.stack.pop()) {
         let result = if a < b { 1 } else { 0 };
@@ -393,4 +393,35 @@ fn is_zero(evm: &mut EvmState) -> &mut EvmState {
     evm
 }
 
+// Logic
+fn _and(evm: &mut EvmState) -> &mut EvmState {
+    if let (Ok(a), Ok(b)) = (evm.stack.pop(), evm.stack.pop()) {
+        evm.stack.push(a & b);
+        evm.pc += 1;
+        evm.gas_dec(3);
+    } else {
+        println!("Stack Underflow")
+    }
+    evm
+}
+fn _or(evm: &mut EvmState) -> &mut EvmState {
+    if let (Ok(a), Ok(b)) = (evm.stack.pop(), evm.stack.pop()) {
+        evm.stack.push(a | b);
+        evm.pc += 1;
+        evm.gas_dec(3);
+    } else {
+        println!("Stack Underflow")
+    }
+    evm
+}
+fn _xor(evm: &mut EvmState) -> &mut EvmState {
+    if let (Ok(a), Ok(b)) = (evm.stack.pop(), evm.stack.pop()) {
+        evm.stack.push(a ^ b);
+        evm.pc += 1;
+        evm.gas_dec(3);
+    } else {
+        println!("Stack Underflow")
+    }
+    evm
+}
 fn main() {}
