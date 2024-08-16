@@ -3,7 +3,7 @@ const MAXIMUM_STACK_SIZE: usize = 1024;
 // Stack
 #[derive(Debug)]
 struct Stack {
-    items: Vec<i32>,
+    items: Vec<i128>,
 }
 
 impl Stack {
@@ -11,7 +11,7 @@ impl Stack {
         Stack { items: Vec::new() }
     }
 
-    fn push(&mut self, value: i32) -> Result<(), &'static str> {
+    fn push(&mut self, value: i128) -> Result<(), &'static str> {
         if self.items.len() == MAXIMUM_STACK_SIZE {
             Err("Stack Overflow")
         } else {
@@ -20,7 +20,7 @@ impl Stack {
         }
     }
 
-    fn pop(&mut self) -> Result<i32, &'static str> {
+    fn pop(&mut self) -> Result<i128, &'static str> {
         if self.items.is_empty() {
             Err("Stack Underflow")
         } else {
@@ -150,7 +150,7 @@ struct EvmState {
     storage: Storage,
     sender: String,
     program: String,
-    gas: i32,
+    gas: i128,
     value: i32,
     calldata: i32,
     stop_flag: bool,
@@ -160,7 +160,7 @@ struct EvmState {
 }
 
 impl EvmState {
-    fn gas_dec(&mut self, value: i32) {
+    fn gas_dec(&mut self, value: i128) {
         self.gas -= value;
     }
 }
@@ -169,6 +169,182 @@ impl EvmState {
 
 fn stop(evm: &mut EvmState) -> &mut EvmState {
     evm.stop_flag = true;
+    evm
+}
+
+// Math
+fn add(evm: &mut EvmState) -> &mut EvmState {
+    match (evm.stack.pop(), evm.stack.pop()) {
+        (Ok(a), Ok(b)) => {
+            evm.stack.push(a + b);
+            evm.pc += 1;
+            evm.gas_dec(3);
+        }
+        _ => {
+            println!("Stack Underflow");
+        }
+    };
+    evm
+}
+fn sub(evm: &mut EvmState) -> &mut EvmState {
+    match (evm.stack.pop(), evm.stack.pop()) {
+        (Ok(a), Ok(b)) => {
+            evm.stack.push(a - b);
+            evm.pc += 1;
+            evm.gas_dec(3);
+        }
+        _ => {
+            println!("Stack Underflow");
+        }
+    };
+    evm
+}
+fn mul(evm: &mut EvmState) -> &mut EvmState {
+    match (evm.stack.pop(), evm.stack.pop()) {
+        (Ok(a), Ok(b)) => {
+            evm.stack.push(a * b);
+            evm.pc += 1;
+            evm.gas_dec(5);
+        }
+        _ => {
+            println!("Stack Underflow");
+        }
+    };
+    evm
+}
+fn div(evm: &mut EvmState) -> &mut EvmState {
+    match (evm.stack.pop(), evm.stack.pop()) {
+        (Ok(a), Ok(b)) => {
+            let result = if b == 0 { 0 } else { a / b };
+            evm.stack.push(result);
+            evm.pc += 1;
+            evm.gas_dec(5);
+        }
+        _ => {
+            println!("Stack Underflow");
+        }
+    };
+    evm
+}
+fn sdiv(evm: &mut EvmState) -> &mut EvmState {
+    match (evm.stack.pop(), evm.stack.pop()) {
+        (Ok(a), Ok(b)) => {
+            let sign = (a * b).signum();
+            let result = if b == 0 {
+                0
+            } else {
+                sign * (a.abs() / b.abs())
+            };
+            evm.stack.push(result);
+            evm.pc += 1;
+            evm.gas_dec(5);
+        }
+        _ => {
+            println!("Stack Underflow");
+        }
+    };
+    evm
+}
+fn modulus(evm: &mut EvmState) -> &mut EvmState {
+    match (evm.stack.pop(), evm.stack.pop()) {
+        (Ok(a), Ok(b)) => {
+            evm.stack.push(a % b);
+            evm.pc += 1;
+            evm.gas_dec(5);
+        }
+        _ => {
+            println!("Stack Underflow");
+        }
+    };
+    evm
+}
+fn smodulus(evm: &mut EvmState) -> &mut EvmState {
+    match (evm.stack.pop(), evm.stack.pop()) {
+        (Ok(a), Ok(b)) => {
+            let sign = (a * b).signum();
+            let result = if b == 0 {
+                0
+            } else {
+                sign * (a.abs() % b.abs())
+            };
+            evm.stack.push(result);
+            evm.pc += 1;
+            evm.gas_dec(5);
+        }
+        _ => {
+            println!("Stack Underflow");
+        }
+    };
+    evm
+}
+fn addmod(evm: &mut EvmState) -> &mut EvmState {
+    match (evm.stack.pop(), evm.stack.pop(), evm.stack.pop()) {
+        (Ok(a), Ok(b), Ok(N)) => {
+            evm.stack.push((a + b) % N);
+            evm.pc += 1;
+            evm.gas_dec(8);
+        }
+        _ => {
+            println!("Stack Underflow");
+        }
+    };
+    evm
+}
+fn mulmod(evm: &mut EvmState) -> &mut EvmState {
+    match (evm.stack.pop(), evm.stack.pop(), evm.stack.pop()) {
+        (Ok(a), Ok(b), Ok(N)) => {
+            evm.stack.push((a * b) % N);
+            evm.pc += 1;
+            evm.gas_dec(8);
+        }
+        _ => {
+            println!("Stack Underflow");
+        }
+    };
+    evm
+}
+fn size_in_bytes(num: i128) -> i128 {
+    if num == 0 {
+        return 1;
+    }
+    let bits_needed = ((num.abs() + 1) as f32).log2().ceil().div(8.0).ceil() as i128;
+    bits_needed
+}
+fn exp(evm: &mut EvmState) -> &mut EvmState {
+    match (evm.stack.pop(), evm.stack.pop()) {
+        (Ok(a), Ok(b)) => {
+            evm.stack.push(a ^ b);
+            evm.pc += 1;
+            evm.gas_dec(10 + (50 * size_in_bytes(b)));
+        }
+        _ => {
+            println!("Stack Underflow");
+        }
+    };
+    evm
+}
+fn signextend(evm: &mut EvmState) -> &mut EvmState {
+    match (evm.stack.pop(), evm.stack.pop()) {
+        (Ok(a), Ok(b)) => {
+            let result: i128 = if a <= 31 {
+                let test_bit = a * 8 + 7;
+                let sign_bit = 1 << test_bit;
+                if b & sign_bit != 0 {
+                    b | (i128::MAX - sign_bit + 1)
+                } else {
+                    b & (sign_bit - 1)
+                }
+            } else {
+                b
+            };
+            evm.stack.push(result);
+            evm.pc += 1;
+            evm.gas_dec(5);
+        }
+        _ => {
+            println!("Stack Underflow");
+        }
+    };
     evm
 }
 
