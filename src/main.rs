@@ -1,10 +1,9 @@
-use std::{collections::HashMap, fmt, mem};
-
+use std::{collections::HashMap, fmt, ops::Div};
 const MAXIMUM_STACK_SIZE: usize = 1024;
-
+// Stack
 #[derive(Debug)]
 struct Stack {
-    items: Vec<u8>,
+    items: Vec<i32>,
 }
 
 impl Stack {
@@ -12,7 +11,7 @@ impl Stack {
         Stack { items: Vec::new() }
     }
 
-    fn push(&mut self, value: u8) -> Result<(), &'static str> {
+    fn push(&mut self, value: i32) -> Result<(), &'static str> {
         if self.items.len() == MAXIMUM_STACK_SIZE {
             Err("Stack Overflow")
         } else {
@@ -21,7 +20,7 @@ impl Stack {
         }
     }
 
-    fn pop(&mut self) -> Result<u8, &'static str> {
+    fn pop(&mut self) -> Result<i32, &'static str> {
         if self.items.is_empty() {
             Err("Stack Underflow")
         } else {
@@ -47,6 +46,7 @@ impl fmt::Display for Stack {
     }
 }
 
+// Memory
 struct Memory {
     memory: Vec<u8>,
 }
@@ -88,6 +88,7 @@ impl Memory {
     }
 }
 
+// Storage
 struct KeyValue {
     storage: HashMap<u8, u8>,
 }
@@ -141,7 +142,8 @@ impl Storage {
     }
 }
 
-struct State {
+// EVM State
+struct EvmState {
     pc: i32,
     stack: Stack,
     memory: Memory,
@@ -157,10 +159,17 @@ struct State {
     logs: Vec<String>,
 }
 
-fn main() {
-    let mut storage = Storage::new();
-    storage.store(1, 100);
-    println!("{:?}", storage.load(1));
-    println!("{:?}", storage.load(1));
-    println!("{:?}", storage.load(10));
+impl EvmState {
+    fn gas_dec(&mut self, value: i32) {
+        self.gas -= value;
+    }
 }
+
+// OPCODES
+
+fn stop(evm: &mut EvmState) -> &mut EvmState {
+    evm.stop_flag = true;
+    evm
+}
+
+fn main() {}
