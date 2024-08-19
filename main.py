@@ -1,3 +1,3 @@
 x = 19
 y = 9
-print(x & y)
+print(bin(22))

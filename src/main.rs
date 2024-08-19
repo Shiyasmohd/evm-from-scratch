@@ -1,4 +1,4 @@
-use std::{collections::HashMap, fmt, ops::Div};
+use std::{collections::HashMap, fmt, ops::Div, result};
 const MAXIMUM_STACK_SIZE: usize = 1024;
 // Stack
 #[derive(Debug)]
@@ -424,4 +424,45 @@ fn _xor(evm: &mut EvmState) -> &mut EvmState {
     }
     evm
 }
+
+// Bit
+
+// Get one byte from a word (32 bytes)
+fn byte(evm: &mut EvmState) -> &mut EvmState {
+    if let (Ok(a), Ok(b)) = (evm.stack.pop(), evm.stack.pop()) {
+        let mut result = 0;
+        if a < 32 {
+            result = (b / 256_i128.pow(32 - 1)) % 256;
+        }
+        evm.stack.push(result);
+        evm.pc += 1;
+        evm.gas_dec(3);
+    } else {
+        println!("Stack Underflow");
+    }
+    evm
+}
+
+fn shl(evm: &mut EvmState) -> &mut EvmState {
+    if let (Ok(shift), Ok(value)) = (evm.stack.pop(), evm.stack.pop()) {
+        evm.stack.push(value << shift);
+        evm.pc += 1;
+        evm.gas_dec(3);
+    } else {
+        println!("Stack Overflow");
+    }
+    evm
+}
+
+fn shr(evm: &mut EvmState) -> &mut EvmState {
+    if let (Ok(shift), Ok(value)) = (evm.stack.pop(), evm.stack.pop()) {
+        evm.stack.push(value >> shift);
+        evm.pc += 1;
+        evm.gas_dec(3);
+    } else {
+        println!("Stack Overflow");
+    }
+    evm
+}
+
 fn main() {}
